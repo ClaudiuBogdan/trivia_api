@@ -16,5 +16,8 @@ backend/.env
 backend/env/
 backend/.idea/
 frontend/.idea/
+frontend/node_modules/
 
 .idea/
+
+frontend/node_modules/.bin/

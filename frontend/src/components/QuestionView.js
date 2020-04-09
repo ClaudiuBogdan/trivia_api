@@ -12,7 +12,7 @@ class QuestionView extends Component {
             questions: [],
             page: 1,
             totalQuestions: 0,
-            categories: {},
+            categories: [],
             currentCategory: null,
         }
     }
@@ -27,6 +27,7 @@ class QuestionView extends Component {
             type: "GET",
             success: (data) => {
                 const result = data.payload;
+                console.log('Categories', result);
                 this.setState({
                     questions: result.questions,
                     totalQuestions: result.total,
@@ -135,12 +136,12 @@ class QuestionView extends Component {
                         this.getQuestions()
                     }}>Categories</h2>
                     <ul>
-                        {Object.keys(this.state.categories).map((id,) => (
-                            <li key={id} onClick={() => {
-                                this.getByCategory(id)
+                        {this.state.categories.map((category,) => (
+                            <li key={category.type} onClick={() => {
+                                this.getByCategory(category.id)
                             }}>
-                                {this.state.categories[id]}
-                                <img className="category" src={`${this.state.categories[id]}.svg`}/>
+                                {category.type}
+                                <img className="category" src={`${category.type}.svg`}/>
                             </li>
                         ))}
                     </ul>
@@ -153,7 +154,7 @@ class QuestionView extends Component {
                             key={q.id}
                             question={q.question}
                             answer={q.answer}
-                            category={this.state.categories[q.category]}
+                            category={this.state.categories.find(category => category.id === q.category)}
                             difficulty={q.difficulty}
                             questionAction={this.questionAction(q.id)}
                         />
