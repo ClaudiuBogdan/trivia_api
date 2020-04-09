@@ -1,10 +1,14 @@
 from dotenv import load_dotenv
 from flask import Flask
-
 # Load env variables
+from flask.json import jsonify
+from flask_cors import CORS
+
+from utils import format_categories
+
 load_dotenv()
 
-from models import setup_db
+from models import setup_db, Category
 
 QUESTIONS_PER_PAGE = 10
 
@@ -15,18 +19,36 @@ def create_app(test_config=None):
     setup_db(app)
 
     '''
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    @COMPLETED: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    '''
+    cors = CORS(app, resources={r"/*": {"origins": "*"}})
+    '''
+    @COMPLETED: Use the after_request decorator to set Access-Control-Allow
     '''
 
-    '''
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    '''
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
+        return response
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create an endpoint to handle GET requests 
     for all available categories.
     '''
+
+    @app.route('/categories')
+    def get_categories():
+        categories = Category.query.all()
+        return jsonify({
+            "success": True,
+            "error": None,
+            "message": "Get categories successfully.",
+            "data:": {
+                "categories": format_categories(categories)
+            }
+        })
 
     '''
     @TODO: 
