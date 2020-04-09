@@ -22,7 +22,7 @@ def create_app(test_config=None):
     '''
     @COMPLETED: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     '''
-    cors = CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app)
     '''
     @COMPLETED: Use the after_request decorator to set Access-Control-Allow
     '''
