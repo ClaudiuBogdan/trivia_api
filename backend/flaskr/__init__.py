@@ -1,14 +1,14 @@
 from dotenv import load_dotenv
-from flask import Flask
+from flask import Flask, request
 # Load env variables
 from flask.json import jsonify
 from flask_cors import CORS
 
-from utils import format_categories
+from utils import format_categories, format_questions
 
 load_dotenv()
 
-from models import setup_db, Category
+from models.__init__ import setup_db, Category, Question
 
 QUESTIONS_PER_PAGE = 10
 
@@ -45,7 +45,7 @@ def create_app(test_config=None):
             "success": True,
             "error": None,
             "message": "Get categories successfully.",
-            "data:": {
+            "payload": {
                 "categories": format_categories(categories)
             }
         })
@@ -62,6 +62,23 @@ def create_app(test_config=None):
     ten questions per page and pagination at the bottom of the screen for three pages.
     Clicking on the page numbers should update the questions. 
     '''
+
+    @app.route('/questions')
+    def get_questions():
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', QUESTIONS_PER_PAGE, type=int)
+        questions_query = Question.query.paginate(page, limit, False)
+        return jsonify({
+            "success": True,
+            "error": None,
+            "message": "Get questions successfully.",
+            "payload": {
+                "questions": format_questions(questions_query.items),
+                "page": questions_query.page,
+                "limit": questions_query.per_page,
+                "total": questions_query.total
+            }
+        })
 
     '''
     @TODO: 
@@ -115,9 +132,33 @@ def create_app(test_config=None):
     '''
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "resource not found"
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "unprocessable"
+        }), 422
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "bad request"
+        }), 400
 
     return app
