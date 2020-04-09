@@ -25,10 +25,11 @@ class QuestionView extends Component {
         $.ajax({
             url: `/questions?page=${this.state.page}`, //TODO: update request URL
             type: "GET",
-            success: (result) => {
+            success: (data) => {
+                const result = data.payload;
                 this.setState({
                     questions: result.questions,
-                    totalQuestions: result.total_questions,
+                    totalQuestions: result.total,
                     categories: result.categories,
                     currentCategory: result.current_category
                 })
@@ -65,11 +66,12 @@ class QuestionView extends Component {
         $.ajax({
             url: `/categories/${id}/questions`, //TODO: update request URL
             type: "GET",
-            success: (result) => {
+            success: (data) => {
+                const result = data['payload'];
                 this.setState({
-                    questions: result.questions,
-                    totalQuestions: result.total_questions,
-                    currentCategory: result.current_category
+                    questions: result['questions'],
+                    totalQuestions: result['total_questions'],
+                    currentCategory: result['current_category']
                 })
                 return;
             },
@@ -86,16 +88,17 @@ class QuestionView extends Component {
             type: "POST",
             dataType: 'json',
             contentType: 'application/json',
-            data: JSON.stringify({searchTerm: searchTerm}),
+            data: JSON.stringify({search_term: searchTerm}),
             xhrFields: {
                 withCredentials: true
             },
             crossDomain: true,
-            success: (result) => {
+            success: (data) => {
+                const result = data['payload'];
                 this.setState({
-                    questions: result.questions,
-                    totalQuestions: result.total_questions,
-                    currentCategory: result.current_category
+                    questions: result['questions'],
+                    totalQuestions: result['total_questions'],
+                    currentCategory: result['current_category']
                 })
                 return;
             },

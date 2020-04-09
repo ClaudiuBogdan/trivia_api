@@ -62,7 +62,8 @@ class QuizView extends Component {
                 withCredentials: true
             },
             crossDomain: true,
-            success: (result) => {
+            success: (data) => {
+                const result = data['payload'];
                 this.setState({
                     showAnswer: false,
                     previousQuestions: previousQuestions,

@@ -5,7 +5,7 @@ from flask.json import jsonify
 from flask_cors import CORS
 from sqlalchemy import func
 
-from utils import format_categories, format_questions
+from utils import format_categories, format_questions, format_categories_from_questions
 
 load_dotenv()
 
@@ -69,15 +69,22 @@ def create_app(test_config=None):
         page = request.args.get('page', 1, type=int)
         limit = request.args.get('limit', QUESTIONS_PER_PAGE, type=int)
         questions_query = Question.query.paginate(page, limit, False)
+
+        questions = format_questions(questions_query.items)
+        categories = format_categories_from_questions(questions)
+        current_category = categories[0] if categories else None
+
         return jsonify({
             "success": True,
             "error": None,
             "message": "Get questions successfully.",
             "payload": {
-                "questions": format_questions(questions_query.items),
+                "questions": questions,
                 "page": questions_query.page,
                 "limit": questions_query.per_page,
-                "total": questions_query.total
+                "total": questions_query.total,
+                "categories": categories,
+                "current_category": current_category
             }
         })
 
@@ -119,13 +126,13 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['POST'])
     def create_question():
         try:
-            question_form = request.form
+            question_body = request.get_json()
 
             question = Question(
-                question=question_form.get('question'),
-                answer=question_form.get('answer'),
-                category=int(question_form.get('category')),
-                difficulty=int(question_form.get('difficulty'))
+                question=question_body.get('question'),
+                answer=question_body.get('answer'),
+                category=int(question_body.get('category')),
+                difficulty=int(question_body.get('difficulty'))
             )
             question.insert()
 
@@ -153,18 +160,23 @@ def create_app(test_config=None):
 
     @app.route('/questions/search', methods=['POST'])
     def search_questions():
-        search_term = request.form.get('search_term')
+        search_term = request.get_json().get('search_term')
         if search_term is None:
             abort(422)
 
         search = "%{}%".format(search_term)
         questions = Question.query.filter(Question.question.ilike(search)).all()
+        category_id = None
+        if questions:
+            category_id = questions[0].category
         return make_response(jsonify({
             "success": True,
             "error": None,
             "message": "Search question successfully.",
             "payload": {
                 "questions": format_questions(questions),
+                "total_questions": len(questions),
+                "current_category": category_id
             }
         }), 200)
 
@@ -186,6 +198,8 @@ def create_app(test_config=None):
             "message": "Get questions by category successfully.",
             "payload": {
                 "questions": format_questions(questions),
+                "total_questions": len(questions),
+                "current_category": category_id
             }
         })
 
@@ -203,28 +217,27 @@ def create_app(test_config=None):
 
     @app.route('/play', methods=['POST'])
     def play_trivia():
-        category = request.form.get('category')
-        previous_question = request.form.get('previous_question')
+        request_body = request.get_json()
+        quiz_category = request_body.get('quiz_category')
+        previous_questions = request_body.get('previous_questions')
+
         filters = []
-        if category:
-            filters.append(Question.category == int(category))
-        if previous_question:
-            filters.append(Question.id != int(previous_question))
+        if quiz_category:
+            filters.append(Question.category == int(quiz_category))
+        if previous_questions:
+            filters.append(~Question.id.in_(previous_questions))
         question = Question \
             .query \
             .filter(*filters) \
             .order_by(func.random()) \
             .first()
 
-        if not question:
-            abort(404)
-
         return make_response(jsonify({
             "success": True,
             "error": None,
             "message": "Start trivia successfully.",
             "payload": {
-                "question": question.format(),
+                "question": question.format() if question else None,
             }
         }), 200)
 

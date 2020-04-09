@@ -1,7 +1,6 @@
 import json
 import unittest
 from os import environ
-from urllib.parse import urlencode
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -62,6 +61,9 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertEqual(QUESTIONS_PER_PAGE, len(data['payload']['questions']))
         self.assertEqual(QUESTIONS_PER_PAGE, data['payload']['limit'])
+        self.assertTrue(data['payload']['total'])
+        self.assertTrue(data['payload']['categories'])
+        self.assertTrue(data['payload']['current_category'])
 
     """
     TEST: When you submit a question on the "Add" tab, 
@@ -70,14 +72,13 @@ class TriviaTestCase(unittest.TestCase):
     """
 
     def test_questions_create(self):
-        from urllib.parse import urlencode
         params = {
             "question": 'test question',
             "answer": 'test answer',
             "category": 1,
             "difficulty": 5
         }
-        res = self.client().post('/questions', data=urlencode(params), content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/questions', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 201)
@@ -95,7 +96,7 @@ class TriviaTestCase(unittest.TestCase):
             "category": 'test category',
             "difficulty": 'test difficulty'
         }
-        res = self.client().post('/questions', data=urlencode(params), content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/questions', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -130,21 +131,21 @@ class TriviaTestCase(unittest.TestCase):
         params = {
             "search_term": 'title',
         }
-        res = self.client().post('/questions/search', data=urlencode(params),
-                                 content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/questions/search', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['payload'])
+        self.assertTrue(data['payload']['current_category'])
+        self.assertGreater(data['payload']['total_questions'], 0)
         self.assertGreater(len(data['payload']['questions']), 0)
 
     def test_questions_search_bad_request(self):
         params = {
             "search_term_test": 'title',
         }
-        res = self.client().post('/questions/search', data=urlencode(params),
-                                 content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/questions/search', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -164,7 +165,10 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['payload'])
+        self.assertEqual(category_id, data['payload']['current_category'])
+        self.assertGreater(data['payload']['total_questions'], 0)
         self.assertGreater(len(data['payload']['questions']), 0)
+
         for question in data['payload']['questions']:
             self.assertEqual(question['category'], category_id)
 
@@ -184,13 +188,12 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_play_trivia_with_category(self):
         category_id = 2
-        previous_question = 16
+        previous_questions = [16, 17, 18]
         params = {
-            "category": category_id,
-            "previous_question": previous_question
+            "quiz_category": category_id,
+            "previous_questions": previous_questions
         }
-        res = self.client().post('/play', data=urlencode(params),
-                                 content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/play', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -198,21 +201,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['payload'])
         self.assertTrue(data['payload']['question'])
         self.assertEqual(category_id, data['payload']['question']['category'])
-        self.assertNotEqual(previous_question, data['payload']['question']['id'])
+        self.assertNotIn(data['payload']['question']['id'], previous_questions)
 
     def test_play_trivia_with_category_not_found(self):
         category_id = -1
-        previous_question = 16
+        previous_questions = [16, 17, 18]
         params = {
-            "category": category_id,
-            "previous_question": previous_question
+            "quiz_category": category_id,
+            "previous_questions": previous_questions
         }
-        res = self.client().post('/play', data=urlencode(params),
-                                 content_type="application/x-www-form-urlencoded")
+        res = self.client().post('/play', json=params)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['payload'])
+        self.assertTrue(data['payload']['question'] is None)
 
 
 # Make the tests conveniently executable

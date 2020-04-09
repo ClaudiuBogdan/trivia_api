@@ -19,8 +19,9 @@ class FormView extends Component {
         $.ajax({
             url: `/categories`, //TODO: update request URL
             type: "GET",
-            success: (result) => {
-                this.setState({categories: result.categories})
+            success: (data) => {
+                const result = data['payload'];
+                this.setState({categories: result.categories});
                 return;
             },
             error: (error) => {
