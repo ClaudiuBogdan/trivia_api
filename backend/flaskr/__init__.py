@@ -3,6 +3,7 @@ from flask import Flask, request, abort, make_response
 # Load env variables
 from flask.json import jsonify
 from flask_cors import CORS
+from sqlalchemy import func
 
 from utils import format_categories, format_questions
 
@@ -81,7 +82,7 @@ def create_app(test_config=None):
         })
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create an endpoint to DELETE question using a question ID. 
   
     TEST: When you click the trash icon next to a question, the question will be removed.
@@ -182,14 +183,14 @@ def create_app(test_config=None):
         return jsonify({
             "success": True,
             "error": None,
-            "message": "Get questions successfully.",
+            "message": "Get questions by category successfully.",
             "payload": {
                 "questions": format_questions(questions),
             }
         })
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create a POST endpoint to get questions to play the quiz. 
     This endpoint should take category and previous question parameters 
     and return a random questions within the given category, 
@@ -199,6 +200,33 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not. 
     '''
+
+    @app.route('/play', methods=['POST'])
+    def play_trivia():
+        category = request.form.get('category')
+        previous_question = request.form.get('previous_question')
+        filters = []
+        if category:
+            filters.append(Question.category == int(category))
+        if previous_question:
+            filters.append(Question.id != int(previous_question))
+        question = Question \
+            .query \
+            .filter(*filters) \
+            .order_by(func.random()) \
+            .first()
+
+        if not question:
+            abort(404)
+
+        return make_response(jsonify({
+            "success": True,
+            "error": None,
+            "message": "Start trivia successfully.",
+            "payload": {
+                "question": question.format(),
+            }
+        }), 200)
 
     '''
     @COMPLETED: 

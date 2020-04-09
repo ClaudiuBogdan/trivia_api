@@ -20,7 +20,7 @@ class TriviaTestCase(unittest.TestCase):
         SQL_DATABASE = environ.get('TEST_SQL_DATABASE')
 
         self.TOTAL_QUESTIONS = 19
-        self.QUESTIONS_ID = 9
+        self.QUESTIONS_ID = 16
 
         self.app = create_app()
         self.client = self.app.test_client
@@ -106,19 +106,19 @@ class TriviaTestCase(unittest.TestCase):
     This removal will persist in the database and when you refresh the page. 
     """
 
-    # def test_questions_delete_by_id(self):
-    #     res = self.client().delete('/questions/{}'.format(self.QUESTIONS_ID))
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #
-    # def test_questions_delete_by_id_not_found(self):
-    #     res = self.client().delete('/questions/{}'.format(-1))
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 404)
-    #     self.assertEqual(data['success'], False)
+    def test_questions_delete_by_id(self):
+        res = self.client().delete('/questions/{}'.format(self.QUESTIONS_ID))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_questions_delete_by_id_not_found(self):
+        res = self.client().delete('/questions/{}'.format(-1))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
 
     """
     TEST: Search by any phrase. The questions list will update to include 
@@ -171,6 +171,44 @@ class TriviaTestCase(unittest.TestCase):
     def test_questions_by_category_bad_request(self):
         category_id = 'test'
         res = self.client().get('/categories/{}/questions'.format(category_id))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
+    """
+    TEST: In the "Play" tab, after a user selects "All" or a category,
+    one question at a time is displayed, the user is allowed to answer
+    and shown whether they were correct or not. 
+    """
+
+    def test_play_trivia_with_category(self):
+        category_id = 2
+        previous_question = 16
+        params = {
+            "category": category_id,
+            "previous_question": previous_question
+        }
+        res = self.client().post('/play', data=urlencode(params),
+                                 content_type="application/x-www-form-urlencoded")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['payload'])
+        self.assertTrue(data['payload']['question'])
+        self.assertEqual(category_id, data['payload']['question']['category'])
+        self.assertNotEqual(previous_question, data['payload']['question']['id'])
+
+    def test_play_trivia_with_category_not_found(self):
+        category_id = -1
+        previous_question = 16
+        params = {
+            "category": category_id,
+            "previous_question": previous_question
+        }
+        res = self.client().post('/play', data=urlencode(params),
+                                 content_type="application/x-www-form-urlencoded")
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
