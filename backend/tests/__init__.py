@@ -150,6 +150,32 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
 
+    """
+    TEST: In the "List" tab / main screen, clicking on one of the 
+    categories in the left column will cause only questions of that 
+    category to be shown. 
+    """
+
+    def test_questions_by_category(self):
+        category_id = 5
+        res = self.client().get('/categories/{}/questions'.format(category_id))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['payload'])
+        self.assertGreater(len(data['payload']['questions']), 0)
+        for question in data['payload']['questions']:
+            self.assertEqual(question['category'], category_id)
+
+    def test_questions_by_category_bad_request(self):
+        category_id = 'test'
+        res = self.client().get('/categories/{}/questions'.format(category_id))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
