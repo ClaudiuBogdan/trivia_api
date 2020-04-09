@@ -141,7 +141,7 @@ class QuestionView extends Component {
                                 this.getByCategory(category.id)
                             }}>
                                 {category.type}
-                                <img className="category" src={`${category ? category.type : 'placeholder'}.svg`}/>
+                                <img className="category" src={`${category ? category.type.toLowerCase() : 'placeholder'}.svg`}/>
                             </li>
                         ))}
                     </ul>

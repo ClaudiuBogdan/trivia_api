@@ -217,7 +217,7 @@ def create_app(test_config=None):
     and shown whether they were correct or not. 
     '''
 
-    @app.route('/play', methods=['POST'])
+    @app.route('/quizzes', methods=['POST'])
     def play_trivia():
         request_body = request.get_json()
         quiz_category = request_body.get('quiz_category')

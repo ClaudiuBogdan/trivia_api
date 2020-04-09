@@ -193,7 +193,7 @@ class TriviaTestCase(unittest.TestCase):
             "quiz_category": category_id,
             "previous_questions": previous_questions
         }
-        res = self.client().post('/play', json=params)
+        res = self.client().post('/quizzes', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -210,7 +210,7 @@ class TriviaTestCase(unittest.TestCase):
             "quiz_category": category_id,
             "previous_questions": previous_questions
         }
-        res = self.client().post('/play', json=params)
+        res = self.client().post('/quizzes', json=params)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
