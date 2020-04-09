@@ -105,7 +105,7 @@ def create_app(test_config=None):
         }), 200)
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create an endpoint to POST a new question, 
     which will require the question and answer text, 
     category, and difficulty score.
@@ -149,6 +149,23 @@ def create_app(test_config=None):
     only question that include that string within their question. 
     Try using the word "title" to start. 
     '''
+
+    @app.route('/questions/search', methods=['POST'])
+    def search_questions():
+        search_term = request.form.get('search_term')
+        if search_term is None:
+            abort(422)
+
+        search = "%{}%".format(search_term)
+        questions = Question.query.filter(Question.question.ilike(search)).all()
+        return make_response(jsonify({
+            "success": True,
+            "error": None,
+            "message": "Search question successfully.",
+            "payload": {
+                "questions": format_questions(questions),
+            }
+        }), 200)
 
     '''
     @TODO: 

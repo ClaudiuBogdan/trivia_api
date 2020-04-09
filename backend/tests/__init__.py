@@ -1,6 +1,7 @@
 import json
 import unittest
 from os import environ
+from urllib.parse import urlencode
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -87,6 +88,19 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(params['category'], data['payload']['question']['category'])
         self.assertEqual(params['difficulty'], data['payload']['question']['difficulty'])
 
+    def test_questions_create_bad_request(self):
+        params = {
+            "question": 1,
+            "answer": 1,
+            "category": 'test category',
+            "difficulty": 'test difficulty'
+        }
+        res = self.client().post('/questions', data=urlencode(params), content_type="application/x-www-form-urlencoded")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+
     """
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page. 
@@ -105,6 +119,36 @@ class TriviaTestCase(unittest.TestCase):
     #
     #     self.assertEqual(res.status_code, 404)
     #     self.assertEqual(data['success'], False)
+
+    """
+    TEST: Search by any phrase. The questions list will update to include 
+    only question that include that string within their question. 
+    Try using the word "title" to start. 
+    """
+
+    def test_questions_search(self):
+        params = {
+            "search_term": 'title',
+        }
+        res = self.client().post('/questions/search', data=urlencode(params),
+                                 content_type="application/x-www-form-urlencoded")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['payload'])
+        self.assertGreater(len(data['payload']['questions']), 0)
+
+    def test_questions_search_bad_request(self):
+        params = {
+            "search_term_test": 'title',
+        }
+        res = self.client().post('/questions/search', data=urlencode(params),
+                                 content_type="application/x-www-form-urlencoded")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
 
 
 # Make the tests conveniently executable
