@@ -166,17 +166,19 @@ def create_app(test_config=None):
 
         search = "%{}%".format(search_term)
         questions = Question.query.filter(Question.question.ilike(search)).all()
-        category_id = None
-        if questions:
-            category_id = questions[0].category
+        questions = format_questions(questions)
+        categories = format_categories_from_questions(questions)
+        current_category = categories[0] if categories else None
+
         return make_response(jsonify({
             "success": True,
             "error": None,
             "message": "Search question successfully.",
             "payload": {
-                "questions": format_questions(questions),
+                "questions": questions,
                 "total_questions": len(questions),
-                "current_category": category_id
+                "current_category": current_category,
+                "categories": categories
             }
         }), 200)
 
