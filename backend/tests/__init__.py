@@ -8,6 +8,7 @@ from flaskr import create_app, QUESTIONS_PER_PAGE
 from models.__init__ import setup_db
 
 TOTAL_QUESTIONS = 19
+QUESTIONS_ID = 9
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -60,22 +61,25 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertEqual(QUESTIONS_PER_PAGE, len(data['payload']['questions']))
         self.assertEqual(QUESTIONS_PER_PAGE, data['payload']['limit'])
-        self.assertEqual(TOTAL_QUESTIONS, data['payload']['total'])
 
-    def test_questions_pagination_total(self):
-        res = self.client().get('/questions?page=1&limit={}'.format(TOTAL_QUESTIONS + 1))
+    """
+    TEST: When you click the trash icon next to a question, the question will be removed.
+    This removal will persist in the database and when you refresh the page. 
+    """
+
+    def test_questions_delete_by_id(self):
+        res = self.client().delete('/questions/{}'.format(QUESTIONS_ID))
         data = json.loads(res.data)
 
-        self.assertEqual(TOTAL_QUESTIONS, data['payload']['total'])
-
-    def test_questions_pagination_empty_args(self):
-        res = self.client().get('/questions')
-        data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(QUESTIONS_PER_PAGE, len(data['payload']['questions']))
-        self.assertEqual(QUESTIONS_PER_PAGE, data['payload']['limit'])
-        self.assertEqual(TOTAL_QUESTIONS, data['payload']['total'])
+
+    def test_questions_delete_by_id_not_found(self):
+        res = self.client().delete('/questions/{}'.format(-1))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
 
 
 # Make the tests conveniently executable

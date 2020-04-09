@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from flask import Flask, request
+from flask import Flask, request, abort, make_response
 # Load env variables
 from flask.json import jsonify
 from flask_cors import CORS
@@ -51,7 +51,7 @@ def create_app(test_config=None):
         })
 
     '''
-    @TODO: 
+    @COMPLETED: 
     Create an endpoint to handle GET requests for questions, 
     including pagination (every 10 questions). 
     This endpoint should return a list of questions, 
@@ -87,6 +87,22 @@ def create_app(test_config=None):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page. 
     '''
+
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        question = Question.query.get(question_id)
+        if not question:
+            abort(404)
+        question.delete()
+
+        return make_response(jsonify({
+            "success": True,
+            "error": None,
+            "message": "Delete question successfully.",
+            "payload": {
+                "question": question.format(),
+            }
+        }), 200)
 
     '''
     @TODO: 
