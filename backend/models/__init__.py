@@ -1,7 +1,10 @@
 from os import environ
 
+from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, Integer
+
+load_dotenv()
 
 SQL_USER = environ.get('SQL_USER')
 SQL_PASSWORD = environ.get('SQL_PASSWORD')

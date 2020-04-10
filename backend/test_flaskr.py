@@ -106,20 +106,19 @@ class TriviaTestCase(unittest.TestCase):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page. 
     """
-# TODO uncomment
-    # def test_questions_delete_by_id(self):
-    #     res = self.client().delete('/questions/{}'.format(self.QUESTIONS_ID))
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #
-    # def test_questions_delete_by_id_not_found(self):
-    #     res = self.client().delete('/questions/{}'.format(-1))
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 404)
-    #     self.assertEqual(data['success'], False)
+    def test_questions_delete_by_id(self):
+        res = self.client().delete('/questions/{}'.format(self.QUESTIONS_ID))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_questions_delete_by_id_not_found(self):
+        res = self.client().delete('/questions/{}'.format(-1))
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
 
     """
     TEST: Search by any phrase. The questions list will update to include 
